@@ -1,0 +1,1 @@
+curl -T file1 http://localhost:8080 -H 'Host:' -H 'User-Agent:' -H 'Accept:' 
