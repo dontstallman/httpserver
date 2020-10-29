@@ -27,7 +27,15 @@ typedef struct request {
 //     actionString = strtok_r(buf, "\r\n", actionString_ptr)
 // }
 
-struct request parseRequest(char* buf){
+struct request readPayload(int client_fd, Request *request){
+    ssize_t dataRead;
+    while (dataRead = recv(client_fd, request->buffer, BUFFER_SIZE, 0)){
+        //while loop makes sure that all data will be read even if the payload is bigger than the buffer
+        printf("payload: %s", request->buffer);
+    }
+}
+
+struct request processRequest(char* buf){
     //parserequest has no interaction with socket communication layer and instead parses a Request and fits it into a struct
     //data stream is in buffer
 
@@ -56,13 +64,14 @@ struct request parseRequest(char* buf){
             else{
                 if (!strcmp(tok2, "GET") || !strcmp(tok2, "PUT") || !strcmp(tok2, "HEAD")){
                     request.method = tok2;
-                    printf("method: %s\n", tok2);
                     request.resource = strtok_r(NULL, " ", &tok2_ctxt);
                     if (request.resource!=NULL) {
-                        printf("resource: %s\n", request.resource);
                         tok2 = strtok_r(NULL, " ", &tok2_ctxt);
                         if (!strcmp(tok2, "HTTP/1.1")) {
                             printf("HTTP Version: %s\r\n", tok2);
+                        }
+                        else{
+                            //error
                         }
                     }
                     else{
@@ -73,10 +82,8 @@ struct request parseRequest(char* buf){
             tok2 = strtok_r(NULL, " ", &tok2_ctxt);
         }
         tok1 = strtok_r(NULL, "\r\n", &tok1_ctxt);
-        printf("tok1: %s\n", tok1);
         //empty token, like in a GET request, could return as NULL or empty so check
     }
-    printf("we never get here\n");
     return request;
 }
 //parseRequest->get partial amount of data in recv->call write->if more bytes left to be read, iterate through recv again

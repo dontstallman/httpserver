@@ -55,12 +55,15 @@ int main(int argc, char** argv) {
         //maybe append req structures to main hash table or something
         //uid by client file descriptor 
         //redo below to read from next buffer to get payload
-        ssize_t bytesRead = recv(client_fd, buf, BUFFER_SIZE, 0);
+        ssize_t bytesRead; 
+        while ((bytesRead = recv(client_fd, buf, BUFFER_SIZE, 0) > 0)){
+            req = processRequest(buf);
+            if (req.content_length > 0){
+                readPayload(client_fd, &req);
+            }
+        }
         printf("%ld bytes received\n", bytesRead);
-        req = parseRequest(buf);
         printf("Method: %s\r\nResource: %s\r\nContent length: %ld\r\n\r\n", req.method, req.resource, req.content_length);
-        bytesRead = recv(client_fd, buf2, BUFFER_SIZE, 0);
-        printf("%ld bytes received\n", bytesRead);
     }
     return EXIT_SUCCESS;
 }
